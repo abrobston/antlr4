@@ -37,7 +37,6 @@ import org.antlr.v4.misc.Utils;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.runtime.RuntimeMetaData;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.Nullable;
 import org.antlr.v4.tool.ErrorType;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.Rule;
@@ -100,7 +99,7 @@ public abstract class Target {
 	 */
 	public abstract String getVersion();
 
-	@Nullable
+
 	public STGroup getTemplates() {
 		if (templates == null) {
 			String version = getVersion();
@@ -405,6 +404,14 @@ public abstract class Target {
 		return Integer.MAX_VALUE;
 	}
 
+	/** How many bits should be used to do inline token type tests? Java assumes
+	 *  a 64-bit word for bitsets.  Must be a valid wordsize for your target like
+	 *  8, 16, 32, 64, etc...
+	 *
+	 *  @since 4.5
+	 */
+	public int getInlineTestSetWordSize() { return 64; }
+
 	public boolean grammarSymbolCausesIssueInGeneratedCode(GrammarAST idNode) {
 		switch (idNode.getParent().getType()) {
 			case ANTLRParser.ASSIGN:
@@ -453,7 +460,7 @@ public abstract class Target {
 		return result!=null;
 	}
 
-	@Nullable
+
 	protected STGroup loadTemplates() {
 		String groupFileName = CodeGenerator.TEMPLATE_ROOT + "/" + getLanguage() + "/" + getLanguage() + STGroup.GROUP_FILE_EXTENSION;
 		STGroup result = null;

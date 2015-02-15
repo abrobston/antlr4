@@ -55,8 +55,6 @@ import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.misc.IntSet;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.IntervalSet;
-import org.antlr.v4.runtime.misc.NotNull;
-import org.antlr.v4.runtime.misc.Nullable;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.tool.ast.ActionAST;
 import org.antlr.v4.tool.ast.GrammarAST;
@@ -155,10 +153,19 @@ public class Grammar implements AttributeResolver {
 
 	public String name;
     public GrammarRootAST ast;
-	/** Track stream used to create this grammar */
-	@NotNull
+
+	/** Track token stream used to create this grammar */
+
 	public final org.antlr.runtime.TokenStream tokenStream;
-	/** If we transform grammar, track original unaltered token stream */
+
+	/** If we transform grammar, track original unaltered token stream.
+	 *  This is set to the same value as tokenStream when tokenStream is
+	 *  initially set.
+	 *
+	 *  If this field differs from tokenStream, then we have transformed
+	 *  the grammar.
+	 */
+
 	public org.antlr.runtime.TokenStream originalTokenStream;
 
     public String text; // testing only
@@ -196,7 +203,7 @@ public class Grammar implements AttributeResolver {
 
 	public List<IntervalSet[]> decisionLOOK;
 
-	@NotNull
+
 	public final Tool tool;
 
 	/** Token names and literal tokens like "void" are uniquely indexed.
@@ -275,7 +282,7 @@ public class Grammar implements AttributeResolver {
 
 	public static final String AUTO_GENERATED_TOKEN_NAME_PREFIX = "T__";
 
-	public Grammar(Tool tool, @NotNull GrammarRootAST ast) {
+	public Grammar(Tool tool, GrammarRootAST ast) {
 		if ( ast==null ) {
 			throw new NullPointerException("ast");
 		}
@@ -288,6 +295,7 @@ public class Grammar implements AttributeResolver {
         this.ast = ast;
         this.name = (ast.getChild(0)).getText();
 		this.tokenStream = ast.tokenStream;
+		this.originalTokenStream = this.tokenStream;
 
 		initTokenSymbolTables();
     }
@@ -316,14 +324,14 @@ public class Grammar implements AttributeResolver {
 	}
 
 	/** For testing; builds trees, does sem anal */
-	public Grammar(String fileName, String grammarText, @Nullable ANTLRToolListener listener)
+	public Grammar(String fileName, String grammarText, ANTLRToolListener listener)
 		throws org.antlr.runtime.RecognitionException
 	{
 		this(fileName, grammarText, null, listener);
 	}
 
 	/** For testing; builds trees, does sem anal */
-	public Grammar(String fileName, String grammarText, Grammar tokenVocabSource, @Nullable ANTLRToolListener listener)
+	public Grammar(String fileName, String grammarText, Grammar tokenVocabSource, ANTLRToolListener listener)
 		throws org.antlr.runtime.RecognitionException
 	{
         this.text = grammarText;
@@ -343,6 +351,7 @@ public class Grammar implements AttributeResolver {
 		}
 
 		this.tokenStream = ast.tokenStream;
+		this.originalTokenStream = this.tokenStream;
 
 		// ensure each node has pointer to surrounding grammar
 		final Grammar thiz = this;
@@ -429,7 +438,7 @@ public class Grammar implements AttributeResolver {
 	 * instance; otherwise, {@code false} if a rule with this name already
 	 * existed in the grammar instance.
 	 */
-	public boolean defineRule(@NotNull Rule r) {
+	public boolean defineRule(Rule r) {
 		if ( rules.get(r.name)!=null ) {
 			return false;
 		}
@@ -456,7 +465,7 @@ public class Grammar implements AttributeResolver {
 	 * instance; otherwise, {@code false} if the specified rule was not defined
 	 * in the grammar.
 	 */
-	public boolean undefineRule(@NotNull Rule r) {
+	public boolean undefineRule(Rule r) {
 		if (r.index < 0 || r.index >= indexToRule.size() || indexToRule.get(r.index) != r) {
 			return false;
 		}
@@ -674,7 +683,7 @@ public class Grammar implements AttributeResolver {
 	 * @param ttype The token type.
 	 * @return The name of the token with the specified type.
 	 */
-	@NotNull
+
 	public String getTokenName(int ttype) {
 		// inside any target's char range and is lexer grammar?
 		if ( isLexer() &&
@@ -773,7 +782,7 @@ public class Grammar implements AttributeResolver {
 	/**
 	 * Gets the literal names assigned to tokens in the grammar.
 	 */
-	@NotNull
+
 	public String[] getTokenLiteralNames() {
 		int numTokens = getMaxTokenType();
 		String[] literalNames = new String[numTokens+1];
@@ -793,7 +802,7 @@ public class Grammar implements AttributeResolver {
 	/**
 	 * Gets the symbolic names assigned to tokens in the grammar.
 	 */
-	@NotNull
+
 	public String[] getTokenSymbolicNames() {
 		int numTokens = getMaxTokenType();
 		String[] symbolicNames = new String[numTokens+1];
@@ -812,7 +821,7 @@ public class Grammar implements AttributeResolver {
 	 * Gets a {@link Vocabulary} instance describing the vocabulary used by the
 	 * grammar.
 	 */
-	@NotNull
+
 	public Vocabulary getVocabulary() {
 		return new VocabularyImpl(getTokenLiteralNames(), getTokenSymbolicNames());
 	}

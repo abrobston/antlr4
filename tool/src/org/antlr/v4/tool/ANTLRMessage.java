@@ -31,19 +31,18 @@
 package org.antlr.v4.tool;
 
 import org.antlr.runtime.Token;
-import org.antlr.v4.runtime.misc.NotNull;
-import org.antlr.v4.runtime.misc.Nullable;
 import org.stringtemplate.v4.ST;
+
 import java.util.Arrays;
 
 public class ANTLRMessage {
 	private static final Object[] EMPTY_ARGS = new Object[0];
 
-	@NotNull
+
     private final ErrorType errorType;
-	@Nullable
+
     private final Object[] args;
-	@Nullable
+
     private final Throwable e;
 
     // used for location template
@@ -57,27 +56,27 @@ public class ANTLRMessage {
      */
     public Token offendingToken;
 
-	public ANTLRMessage(@NotNull ErrorType errorType) {
+	public ANTLRMessage(ErrorType errorType) {
         this(errorType, (Throwable)null, Token.INVALID_TOKEN);
     }
 
-    public ANTLRMessage(@NotNull ErrorType errorType, Token offendingToken, Object... args) {
+    public ANTLRMessage(ErrorType errorType, Token offendingToken, Object... args) {
         this(errorType, null, offendingToken, args);
 	}
 
-    public ANTLRMessage(@NotNull ErrorType errorType, @Nullable Throwable e, Token offendingToken, Object... args) {
+    public ANTLRMessage(ErrorType errorType, Throwable e, Token offendingToken, Object... args) {
         this.errorType = errorType;
         this.e = e;
         this.args = args;
 		this.offendingToken = offendingToken;
     }
 
-	@NotNull
+
     public ErrorType getErrorType() {
         return errorType;
     }
 
-	@NotNull
+
     public Object[] getArgs() {
 		if (args == null) {
 			return EMPTY_ARGS;
@@ -112,7 +111,7 @@ public class ANTLRMessage {
 		return messageST;
 	}
 
-	@Nullable
+
     public Throwable getCause() {
         return e;
     }

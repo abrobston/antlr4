@@ -35,7 +35,6 @@ import org.antlr.v4.codegen.CodeGenerator;
 import org.antlr.v4.codegen.OutputModelFactory;
 import org.antlr.v4.codegen.model.chunk.ActionChunk;
 import org.antlr.v4.runtime.atn.AbstractPredicateTransition;
-import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.tool.ast.ActionAST;
 import org.antlr.v4.tool.ast.GrammarAST;
 
@@ -65,7 +64,7 @@ public class SemPred extends Action {
 	 */
 	@ModelElement public List<ActionChunk> failChunks;
 
-	public SemPred(OutputModelFactory factory, @NotNull ActionAST ast) {
+	public SemPred(OutputModelFactory factory, ActionAST ast) {
 		super(factory,ast);
 
 		assert ast.atnState != null

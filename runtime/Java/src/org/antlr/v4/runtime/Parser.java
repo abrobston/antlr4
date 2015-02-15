@@ -32,25 +32,28 @@ package org.antlr.v4.runtime;
 import org.antlr.v4.runtime.atn.ATN;
 import org.antlr.v4.runtime.atn.ATNDeserializationOptions;
 import org.antlr.v4.runtime.atn.ATNDeserializer;
+import org.antlr.v4.runtime.atn.ATNSerializer;
 import org.antlr.v4.runtime.atn.ATNSimulator;
 import org.antlr.v4.runtime.atn.ATNState;
+import org.antlr.v4.runtime.atn.AmbiguityInfo;
 import org.antlr.v4.runtime.atn.ParseInfo;
 import org.antlr.v4.runtime.atn.ParserATNSimulator;
+import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.atn.ProfilingATNSimulator;
 import org.antlr.v4.runtime.atn.RuleTransition;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.misc.IntegerStack;
 import org.antlr.v4.runtime.misc.IntervalSet;
-import org.antlr.v4.runtime.misc.NotNull;
-import org.antlr.v4.runtime.misc.Nullable;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.tree.Trees;
 import org.antlr.v4.runtime.tree.pattern.ParseTreePattern;
 import org.antlr.v4.runtime.tree.pattern.ParseTreePatternMatcher;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -118,7 +121,7 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 	 * @see #getErrorHandler
 	 * @see #setErrorHandler
 	 */
-	@NotNull
+
 	protected ANTLRErrorStrategy _errHandler = new DefaultErrorStrategy();
 
 	/**
@@ -166,7 +169,6 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 	 *
 	 * @see #addParseListener
 	 */
-	@Nullable
 	protected List<ParseTreeListener> _parseListeners;
 
 	/**
@@ -212,7 +214,6 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 	 * {@code ttype} and the error strategy could not recover from the
 	 * mismatched symbol
 	 */
-	@NotNull
 	public Token match(int ttype) throws RecognitionException {
 		Token t = getCurrentToken();
 		if ( t.getType()==ttype ) {
@@ -247,7 +248,6 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 	 * a wildcard and the error strategy could not recover from the mismatched
 	 * symbol
 	 */
-	@NotNull
 	public Token matchWildcard() throws RecognitionException {
 		Token t = getCurrentToken();
 		if (t.getType() > 0) {
@@ -321,7 +321,7 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 		return getParseListeners().contains(TrimToSizeListener.INSTANCE);
 	}
 
-	@NotNull
+
 	public List<ParseTreeListener> getParseListeners() {
 		List<ParseTreeListener> listeners = _parseListeners;
 		if (listeners == null) {
@@ -360,7 +360,7 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 	 *
 	 * @throws NullPointerException if {@code} listener is {@code null}
 	 */
-	public void addParseListener(@NotNull ParseTreeListener listener) {
+	public void addParseListener(ParseTreeListener listener) {
 		if (listener == null) {
 			throw new NullPointerException("listener");
 		}
@@ -455,7 +455,7 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 	 * @throws UnsupportedOperationException if the current parser does not
 	 * implement the {@link #getSerializedATN()} method.
 	 */
-	@NotNull
+
 	public ATN getATNWithBypassAlts() {
 		String serializedAtn = getSerializedATN();
 		if (serializedAtn == null) {
@@ -508,12 +508,12 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 		return m.compile(pattern, patternRuleIndex);
 	}
 
-	@NotNull
+
 	public ANTLRErrorStrategy getErrorHandler() {
 		return _errHandler;
 	}
 
-	public void setErrorHandler(@NotNull ANTLRErrorStrategy handler) {
+	public void setErrorHandler(ANTLRErrorStrategy handler) {
 		this._errHandler = handler;
 	}
 
@@ -539,17 +539,17 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
     /** Match needs to return the current input symbol, which gets put
      *  into the label for the associated token ref; e.g., x=ID.
      */
-	@NotNull
+
     public Token getCurrentToken() {
 		return _input.LT(1);
 	}
 
-	public final void notifyErrorListeners(@NotNull String msg)	{
+	public final void notifyErrorListeners(String msg)	{
 		notifyErrorListeners(getCurrentToken(), msg, null);
 	}
 
-	public void notifyErrorListeners(@NotNull Token offendingToken, @NotNull String msg,
-									 @Nullable RecognitionException e)
+	public void notifyErrorListeners(Token offendingToken, String msg,
+									 RecognitionException e)
 	{
 		_syntaxErrors++;
 		int line = -1;
@@ -621,7 +621,7 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 	 * Always called by generated parsers upon entry to a rule. Access field
 	 * {@link #_ctx} get the current context.
 	 */
-	public void enterRule(@NotNull ParserRuleContext localctx, int state, int ruleIndex) {
+	public void enterRule(ParserRuleContext localctx, int state, int ruleIndex) {
 		setState(state);
 		_ctx = localctx;
 		_ctx.start = _input.LT(1);
@@ -683,8 +683,8 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 		}
 	}
 
-	/**
-	 * Like {@link #enterRule} but for recursive rules.
+	/** Like {@link #enterRule} but for recursive rules.
+	 *  Make the current context the child of the incoming localctx.
 	 */
 	public void pushNewRecursionContext(ParserRuleContext localctx, int state, int ruleIndex) {
 		ParserRuleContext previous = _ctx;
@@ -746,13 +746,112 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 	}
 
 	@Override
-	public boolean precpred(@Nullable RuleContext localctx, int precedence) {
+	public boolean precpred(RuleContext localctx, int precedence) {
 		return precedence >= _precedenceStack.peek();
 	}
 
 	public boolean inContext(String context) {
 		// TODO: useful in parser?
 		return false;
+	}
+
+	/** Given an AmbiguityInfo object that contains information about an
+	 *  ambiguous decision event, return the list of ambiguous parse trees.
+	 *  An ambiguity occurs when a specific token sequence can be recognized
+	 *  in more than one way by the grammar. These ambiguities are detected only
+	 *  at decision points.
+	 *
+	 *  The list of trees includes the actual interpretation (that for
+	 *  the minimum alternative number) and all ambiguous alternatives.
+	 *
+	 *  This method reuses the same physical input token stream used to
+	 *  detect the ambiguity by the original parser in the first place.
+	 *  This method resets/seeks within but does not alter originalParser.
+	 *  The input position is restored upon exit from this method.
+	 *  Parsers using a {@link UnbufferedTokenStream} may not be able to
+	 *  perform the necessary save index() / seek(saved_index) operation.
+	 *
+	 *  The trees are rooted at the node whose start..stop token indices
+	 *  include the start and stop indices of this ambiguity event. That is,
+	 *  the trees returns will always include the complete ambiguous subphrase
+	 *  identified by the ambiguity event.
+	 *
+	 *  Be aware that this method does NOT notify error or parse listeners as
+	 *  it would trigger duplicate or otherwise unwanted events.
+	 *
+	 *  This uses a temporary ParserATNSimulator and a ParserInterpreter
+	 *  so we don't mess up any statistics, event lists, etc...
+	 *  The parse tree constructed while identifying/making ambiguityInfo is
+	 *  not affected by this method as it creates a new parser interp to
+	 *  get the ambiguous interpretations.
+	 *
+	 *  Nodes in the returned ambig trees are independent of the original parse
+	 *  tree (constructed while identifying/creating ambiguityInfo).
+	 *
+	 *  @since 4.5.1
+	 *
+	 *  @param originalParser The parser used to create ambiguityInfo; it
+	 *                        is not modified by this routine and can be either
+	 *                        a generated or interpreted parser. It's token
+	 *                        stream *is* reset/seek()'d.
+	 *  @param ambiguityInfo The information about an ambiguous decision event
+	 *                       for which you want ambiguous parse trees.
+	 *
+	 *  @throws RecognitionException Throws upon syntax error while matching
+	 *                               ambig input.
+	 */
+	public static List<ParserRuleContext> getAmbiguousParseTrees(Parser originalParser,
+																 AmbiguityInfo ambiguityInfo,
+																 int startRuleIndex)
+		throws RecognitionException
+	{
+		List<ParserRuleContext> trees = new ArrayList<ParserRuleContext>();
+		int saveTokenInputPosition = originalParser.getTokenStream().index();
+		try {
+			// Create a new parser interpreter to parse the ambiguous subphrase
+			ParserInterpreter parser;
+			if ( originalParser instanceof ParserInterpreter ) {
+				parser = new ParserInterpreter((ParserInterpreter) originalParser);
+			}
+			else {
+				char[] serializedAtn = ATNSerializer.getSerializedAsChars(originalParser.getATN());
+				ATN deserialized = new ATNDeserializer().deserialize(serializedAtn);
+				parser = new ParserInterpreter(originalParser.getGrammarFileName(),
+											   originalParser.getVocabulary(),
+											   Arrays.asList(originalParser.getRuleNames()),
+											   deserialized,
+											   originalParser.getTokenStream());
+			}
+
+			// Make sure that we don't get any error messages from using this temporary parser
+			parser.removeErrorListeners();
+			parser.removeParseListeners();
+			parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
+
+			// get ambig trees
+			int alt = ambiguityInfo.ambigAlts.nextSetBit(0);
+			while ( alt>=0 ) {
+				// re-parse input for all ambiguous alternatives
+				// (don't have to do first as it's been parsed, but do again for simplicity
+				//  using this temp parser.)
+				parser.reset();
+				parser.getTokenStream().seek(ambiguityInfo.startIndex);
+				parser.overrideDecision = ambiguityInfo.decision;
+				parser.overrideDecisionInputIndex = ambiguityInfo.startIndex;
+				parser.overrideDecisionAlt = alt;
+				ParserRuleContext t = parser.parse(startRuleIndex);
+				ParserRuleContext ambigSubTree =
+					Trees.getRootOfSubtreeEnclosingRegion(t, ambiguityInfo.startIndex,
+														  ambiguityInfo.stopIndex);
+				trees.add(ambigSubTree);
+				alt = ambiguityInfo.ambigAlts.nextSetBit(alt+1);
+			}
+		}
+		finally {
+			originalParser.getTokenStream().seek(saveTokenInputPosition);
+		}
+
+		return trees;
 	}
 
 	/**
@@ -806,12 +905,11 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 	 *
 	 * @see ATN#getExpectedTokens(int, RuleContext)
 	 */
-	@NotNull
 	public IntervalSet getExpectedTokens() {
 		return getATN().getExpectedTokens(getState(), getContext());
 	}
 
-	@NotNull
+
     public IntervalSet getExpectedTokensWithinCurrentRule() {
         ATN atn = getInterpreter().atn;
         ATNState s = atn.states.get(getState());
@@ -851,7 +949,7 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 		return stack;
 	}
 
-    /** For debugging and other purposes. */
+	/** For debugging and other purposes. */
 	public List<String> getDFAStrings() {
 		synchronized (_interp.decisionToDFA) {
 			List<String> s = new ArrayList<String>();
@@ -897,14 +995,18 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 	 */
 	public void setProfile(boolean profile) {
 		ParserATNSimulator interp = getInterpreter();
+		PredictionMode saveMode = interp.getPredictionMode();
 		if ( profile ) {
-			if (!(interp instanceof ProfilingATNSimulator)) {
+			if ( !(interp instanceof ProfilingATNSimulator) ) {
 				setInterpreter(new ProfilingATNSimulator(this));
 			}
 		}
-		else if (interp instanceof ProfilingATNSimulator) {
-			setInterpreter(new ParserATNSimulator(this, getATN(), interp.decisionToDFA, interp.getSharedContextCache()));
+		else if ( interp instanceof ProfilingATNSimulator ) {
+			ParserATNSimulator sim =
+				new ParserATNSimulator(this, getATN(), interp.decisionToDFA, interp.getSharedContextCache());
+			setInterpreter(sim);
 		}
+		getInterpreter().setPredictionMode(saveMode);
 	}
 
 	/** During a parse is sometimes useful to listen in on the rule entry and exit

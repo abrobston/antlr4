@@ -33,8 +33,6 @@ package org.antlr.v4.runtime.tree;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.NotNull;
-import org.antlr.v4.runtime.misc.Nullable;
 import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.gui.TreePostScriptGenerator;
 
@@ -50,7 +48,7 @@ import java.util.List;
 /** A set of utility routines useful for all kinds of ANTLR trees. */
 public class Trees {
 
-	public static String getPS(Tree t, @Nullable List<String> ruleNames,
+	public static String getPS(Tree t, List<String> ruleNames,
 							   String fontName, int fontSize)
 	{
 		TreePostScriptGenerator psgen =
@@ -58,11 +56,11 @@ public class Trees {
 		return psgen.getPS();
 	}
 
-	public static String getPS(Tree t, @Nullable List<String> ruleNames) {
+	public static String getPS(Tree t, List<String> ruleNames) {
 		return getPS(t, ruleNames, "Helvetica", 11);
 	}
 
-	public static void writePS(Tree t, @Nullable List<String> ruleNames,
+	public static void writePS(Tree t, List<String> ruleNames,
 							   String fileName,
 							   String fontName, int fontSize)
 		throws IOException
@@ -78,7 +76,7 @@ public class Trees {
 		}
 	}
 
-	public static void writePS(Tree t, @Nullable List<String> ruleNames, String fileName)
+	public static void writePS(Tree t, List<String> ruleNames, String fileName)
 		throws IOException
 	{
 		writePS(t, ruleNames, fileName, "Helvetica", 11);
@@ -88,7 +86,7 @@ public class Trees {
 	 *  node payloads to get the text for the nodes.  Detect
 	 *  parse trees and extract data appropriately.
 	 */
-	public static String toStringTree(@NotNull Tree t) {
+	public static String toStringTree(Tree t) {
 		return toStringTree(t, (List<String>)null);
 	}
 
@@ -96,7 +94,7 @@ public class Trees {
 	 *  node payloads to get the text for the nodes.  Detect
 	 *  parse trees and extract data appropriately.
 	 */
-	public static String toStringTree(@NotNull Tree t, @Nullable Parser recog) {
+	public static String toStringTree(Tree t, Parser recog) {
 		String[] ruleNames = recog != null ? recog.getRuleNames() : null;
 		List<String> ruleNamesList = ruleNames != null ? Arrays.asList(ruleNames) : null;
 		return toStringTree(t, ruleNamesList);
@@ -106,7 +104,7 @@ public class Trees {
 	 *  node payloads to get the text for the nodes.  Detect
 	 *  parse trees and extract data appropriately.
 	 */
-	public static String toStringTree(@NotNull Tree t, @Nullable List<String> ruleNames) {
+	public static String toStringTree(Tree t, List<String> ruleNames) {
 		String s = Utils.escapeWhitespace(getNodeText(t, ruleNames), false);
 		if ( t.getChildCount()==0 ) return s;
 		StringBuilder buf = new StringBuilder();
@@ -122,13 +120,13 @@ public class Trees {
 		return buf.toString();
 	}
 
-	public static String getNodeText(@NotNull Tree t, @Nullable Parser recog) {
+	public static String getNodeText(Tree t, Parser recog) {
 		String[] ruleNames = recog != null ? recog.getRuleNames() : null;
 		List<String> ruleNamesList = ruleNames != null ? Arrays.asList(ruleNames) : null;
 		return getNodeText(t, ruleNamesList);
 	}
 
-	public static String getNodeText(@NotNull Tree t, @Nullable List<String> ruleNames) {
+	public static String getNodeText(Tree t, List<String> ruleNames) {
 		if ( ruleNames!=null ) {
 			if ( t instanceof RuleNode ) {
 				int ruleIndex = ((RuleNode)t).getRuleContext().getRuleIndex();
@@ -167,8 +165,8 @@ public class Trees {
 	/** Return a list of all ancestors of this node.  The first node of
 	 *  list is the root and the last is the parent of this node.
 	 */
-	@NotNull
-	public static List<? extends Tree> getAncestors(@NotNull Tree t) {
+
+	public static List<? extends Tree> getAncestors(Tree t) {
 		if ( t.getParent()==null ) return Collections.emptyList();
 		List<Tree> ancestors = new ArrayList<Tree>();
 		t = t.getParent();
@@ -220,6 +218,32 @@ public class Trees {
 			nodes.addAll(descendants(t.getChild(i)));
 		}
 		return nodes;
+	}
+
+	/** Find smallest subtree of t enclosing range startTokenIndex..stopTokenIndex
+	 *  inclusively using postorder traversal.  Recursive depth-first-search.
+	 *
+	 *  @since 4.5.1
+	 */
+	public static ParserRuleContext getRootOfSubtreeEnclosingRegion(ParseTree t,
+																	int startTokenIndex, // inclusive
+																	int stopTokenIndex)  // inclusive
+	{
+		int n = t.getChildCount();
+		for (int i = 0; i<n; i++) {
+			ParseTree child = t.getChild(i);
+			ParserRuleContext r = getRootOfSubtreeEnclosingRegion(child, startTokenIndex, stopTokenIndex);
+			if ( r!=null ) return r;
+		}
+		if ( t instanceof ParserRuleContext ) {
+			ParserRuleContext r = (ParserRuleContext) t;
+			if ( startTokenIndex>=r.getStart().getTokenIndex() && // is range fully contained in t?
+				stopTokenIndex<=r.getStop().getTokenIndex() )
+			{
+				return r;
+			}
+		}
+		return null;
 	}
 
 	private Trees() {

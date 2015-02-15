@@ -58,8 +58,6 @@ import org.antlr.v4.runtime.atn.TokensStartState;
 import org.antlr.v4.runtime.atn.Transition;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.IntervalSet;
-import org.antlr.v4.runtime.misc.NotNull;
-import org.antlr.v4.runtime.misc.Nullable;
 import org.antlr.v4.tool.ErrorType;
 import org.antlr.v4.tool.LexerGrammar;
 import org.antlr.v4.tool.Rule;
@@ -395,8 +393,8 @@ public class LexerATNFactory extends ParserATNFactory {
 		return _ruleRef(node);
 	}
 
-	@Nullable
-	protected LexerAction createLexerAction(@NotNull GrammarAST ID, @Nullable GrammarAST arg) {
+
+	protected LexerAction createLexerAction(GrammarAST ID, GrammarAST arg) {
 		String command = ID.getText();
 		if ("skip".equals(command) && arg == null) {
 			return LexerSkipAction.INSTANCE;
@@ -448,8 +446,8 @@ public class LexerATNFactory extends ParserATNFactory {
 		}
 	}
 
-	@Nullable
-	protected Integer getConstantValue(@Nullable String name, @Nullable Token token) {
+
+	protected Integer getConstantValue(String name, Token token) {
 		if (name == null) {
 			return null;
 		}

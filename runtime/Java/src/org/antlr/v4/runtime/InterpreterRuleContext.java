@@ -29,8 +29,6 @@
  */
 package org.antlr.v4.runtime;
 
-import org.antlr.v4.runtime.misc.Nullable;
-
 /**
  * This class extends {@link ParserRuleContext} by allowing the value of
  * {@link #getRuleIndex} to be explicitly set for the context.
@@ -47,7 +45,9 @@ public class InterpreterRuleContext extends ParserRuleContext {
 	/**
 	 * This is the backing field for {@link #getRuleIndex}.
 	 */
-	private final int ruleIndex;
+	private int ruleIndex = -1;
+
+	public InterpreterRuleContext() { }
 
 	/**
 	 * Constructs a new {@link InterpreterRuleContext} with the specified
@@ -57,7 +57,7 @@ public class InterpreterRuleContext extends ParserRuleContext {
 	 * @param invokingStateNumber The invoking state number.
 	 * @param ruleIndex The rule index for the current context.
 	 */
-	public InterpreterRuleContext(@Nullable ParserRuleContext parent,
+	public InterpreterRuleContext(ParserRuleContext parent,
 								  int invokingStateNumber,
 								  int ruleIndex)
 	{
@@ -68,5 +68,18 @@ public class InterpreterRuleContext extends ParserRuleContext {
 	@Override
 	public int getRuleIndex() {
 		return ruleIndex;
+	}
+
+	/** Copy a {@link ParserRuleContext} or {@link InterpreterRuleContext}
+	 *  stack to a {@link InterpreterRuleContext} tree.
+	 *  Return {@link null} if {@code ctx} is null.
+	 */
+	public static InterpreterRuleContext fromParserRuleContext(ParserRuleContext ctx) {
+		if ( ctx==null ) return null;
+		InterpreterRuleContext dup = new InterpreterRuleContext();
+		dup.copyFrom(ctx);
+		dup.ruleIndex = ctx.getRuleIndex();
+		dup.parent = fromParserRuleContext(ctx.getParent());
+		return dup;
 	}
 }
