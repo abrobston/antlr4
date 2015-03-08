@@ -37,6 +37,7 @@ doc/
 gen3/
 gen4/
 tmp/
+gen/
 
 # Configurable build files
 bild.py
